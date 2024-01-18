@@ -12,7 +12,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.RobotController;
 import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
+import com.ctre.phoenix.motorcontrol.can.BaseTalon;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.lang.Math;
@@ -21,13 +21,13 @@ public class SwerveModule extends SubsystemBase {
 
   private PIDController turningPIDController;
   private AnalogInput absoluteEncoder;
-  private BaseMotorController driveMotor; 
-  private BaseMotorController turningMotor;
+  private BaseTalon driveMotor;
+  private BaseTalon turningMotor;
   private double absoluteEncoderOffset;
   private boolean absoluteEncoderReversed;
 
   /** Creates a new SwerveModule. */
-  public SwerveModule(BaseMotorController turningMotor, BaseMotorController driveMotor, boolean turningMotorReversed,
+  public SwerveModule(BaseTalon turningMotor, BaseTalon driveMotor, boolean turningMotorReversed,
       boolean driveMotorReversed, AnalogInput absoluteEncoder, boolean absoluteEncoderReversed,
       double absoluteEncoderOffset) {
 
@@ -54,6 +54,7 @@ public class SwerveModule extends SubsystemBase {
   public double getDrivePosition() {
     return (driveMotor.getSelectedSensorPosition() / (512 / 90)) * (SwerveConstants.driveWheelDiameterMeters / 360);
   }
+
   public double getTurningPosition() {
     return (turningMotor.getSelectedSensorPosition() / (512 / 90)) * (1 / 360);
   }
@@ -74,20 +75,23 @@ public class SwerveModule extends SubsystemBase {
   }
 
   // Stop Motors
-  private void stop() {
-    driveMotor.set(ControlMode.PercentOutput,0);
-    turningMotor.set(ControlMode.PercentOutput,0);
+  public void stop() {
+    driveMotor.set(ControlMode.PercentOutput, 0);
+    turningMotor.set(ControlMode.PercentOutput, 0);
   }
 
   // Reset Encoders
   private void resetEncoders() {
     driveMotor.setSelectedSensorPosition(0);
-    turningMotor.setSelectedSensorPosition(Math.toDegrees(getAbsEncoderRad()) * (512 / 90)); //DONE-- Change to return 0 to 2048 and not radians
+    turningMotor.setSelectedSensorPosition(Math.toDegrees(getAbsEncoderRad()) * (512 / 90)); // DONE-- Change to return
+                                                                                             // 0 to 2048 and not
+                                                                                             // radians
   }
 
   // State handling
   private SwerveModuleState getState() {
-    return new SwerveModuleState(getDriveSpeed(), new Rotation2d(getTurningPosition())); //DONE-- Change to Return in radians
+    return new SwerveModuleState(getDriveSpeed(), new Rotation2d(getTurningPosition())); // DONE-- Change to Return in
+                                                                                         // radians
   }
 
   public void setDesiredState(SwerveModuleState state) {
@@ -97,7 +101,8 @@ public class SwerveModule extends SubsystemBase {
     }
     state = SwerveModuleState.optimize(state, getState().angle);
     driveMotor.set(ControlMode.PercentOutput, state.speedMetersPerSecond / DriveConstants.MaxMPS);
-    turningMotor.set(ControlMode.PercentOutput, turningPIDController.calculate(getTurningPosition(), state.angle.getRadians()));
+    turningMotor.set(ControlMode.PercentOutput,
+        turningPIDController.calculate(getTurningPosition(), state.angle.getRadians()));
     SmartDashboard.putString("Swerve[" + absoluteEncoder.getChannel() + "] state", state.toString());
   }
 
