@@ -53,7 +53,7 @@ public final class Constants {
   }
 
   public static final class OIConstants {
-    public static final int kDriverControllerPort = 0;
+    public static final int DriverControllerPort = 0;
 
     public static final int DriverXAxis = 0;
     public static final int DriverYAxis = 1;

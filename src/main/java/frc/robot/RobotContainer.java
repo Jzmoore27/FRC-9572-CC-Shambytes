@@ -4,9 +4,13 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Constants.OIConstants;
+import frc.robot.commands.SwerveJoystickCmd;
+import frc.robot.subsystems.SwerveDrive;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -18,6 +22,8 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
+  private final SwerveDrive swerveDrive = new SwerveDrive();
+  private final Joystick driverJoystick = new Joystick(OIConstants.DriverControllerPort);
   // The robot's subsystems and commands are defined here...
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
@@ -26,6 +32,11 @@ public class RobotContainer {
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public RobotContainer() {
+    swerveDrive.setDefaultCommand(new SwerveJoystickCmd(swerveDrive,
+        () -> -driverJoystick.getRawAxis(OIConstants.DriverYAxis),
+        () -> driverJoystick.getRawAxis(OIConstants.DriverXAxis),
+        () -> driverJoystick.getRawAxis(OIConstants.DriverRotAxis),
+        () -> !driverJoystick.getRawButton(OIConstants.DriverFieldOrientedButtonIdx)));
     // Configure the trigger bindings
     configureBindings();
   }
@@ -45,11 +56,7 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
 
-    // Schedule `exampleMethodCommand` when the Xbox controller's B button is
-    // pressed,
-    // cancelling on release.
   }
 
   /**
