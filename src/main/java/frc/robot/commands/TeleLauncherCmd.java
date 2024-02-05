@@ -6,39 +6,46 @@ package frc.robot.commands;
 
 import java.util.function.Supplier;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.LauncherMech;
 import frc.robot.Constants.*;
 
 public class TeleLauncherCmd extends Command {
-  LauncherMech shooterMech;
-  Supplier<Double> launcherSpeedSupplier;
-  Supplier<Boolean> feedOnSupplier, reversedSupplier;
+  LauncherMech launcherMech;
+  Supplier<Double> launcherSpeedSupplier, rawArmSupplier;
+  Supplier<Boolean> feedOnSupplier, reversedSupplier, height1Supplier;
   Double launcherSpeed, feedSpeed, reverseMultiplier;
   Boolean feedOn, reversed;
   SlewRateLimiter launchLimiter = new SlewRateLimiter(LauncherConstants.launcherLimitRate);
   SlewRateLimiter feedLimiter = new SlewRateLimiter(LauncherConstants.feedLimitRate);
-  
+  PIDController armPID = new PIDController(0.3, 0, 0.01);
+
   /** Creates a new TeleLauncherCmd. */
-  public TeleLauncherCmd(LauncherMech shooterMech, Supplier<Double> launcherSpeed, Supplier<Boolean> feedOn, Supplier<Boolean> reversed) {
-    this.shooterMech = shooterMech;
+  public TeleLauncherCmd(LauncherMech launcherMech, Supplier<Double> launcherSpeed, Supplier<Boolean> feedOn, Supplier<Boolean> reversed, Supplier<Boolean> height1, Supplier<Double> rawArm) {
+    this.launcherMech = launcherMech;
     this.launcherSpeedSupplier = launcherSpeed;
     this.feedOnSupplier = feedOn;
     this.reversedSupplier = reversed;
+    this.height1Supplier = height1;
+    this.rawArmSupplier = rawArm;
 
-    addRequirements(shooterMech);
+    addRequirements(launcherMech);
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    shooterMech.stopMotors();
+    launcherMech.stopMotors();
+    launcherMech.stopArm();
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+    //NOTE CODE
+
     //Get supplied data
     reversed = reversedSupplier.get();
     launcherSpeed = launcherSpeedSupplier.get();
@@ -54,18 +61,23 @@ public class TeleLauncherCmd extends Command {
       launcherSpeed = launcherSpeed * reverseMultiplier;
       launcherSpeed = reversed ? launcherSpeed * LauncherConstants.reversedLauncherMultiplier : launcherSpeed;
       launcherSpeed = launchLimiter.calculate(launcherSpeed);
-      shooterMech.setLaunchSpeed(launcherSpeed);
+      launcherMech.setLaunchSpeed(launcherSpeed);
     }
     //Stop launch motor
-    else{shooterMech.setLaunchSpeed(0);}
+    else{launcherMech.setLaunchSpeed(0);}
     //Set feed motor speed
-    shooterMech.setFeedSpeed(feedSpeed);
+    launcherMech.setFeedSpeed(feedSpeed);
+
+    //END OF NOTE CODE / START OF ARM CODE
+
+    
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    shooterMech.stopMotors();
+    launcherMech.stopMotors();
+    launcherMech.stopArm();
   }
 
   // Returns true when the command should end.

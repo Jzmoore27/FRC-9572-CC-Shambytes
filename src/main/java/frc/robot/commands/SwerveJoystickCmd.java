@@ -10,7 +10,7 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.Constants.*;
+import frc.robot.Constants.SwerveDriveConstants.*;
 import frc.robot.subsystems.SwerveDrive;
 
 public class SwerveJoystickCmd extends Command {
@@ -49,9 +49,9 @@ public class SwerveJoystickCmd extends Command {
     double turningSpeed = turningSpdFunction.get();
 
     // 2. Apply deadband
-    xSpeed = Math.abs(xSpeed) > OIConstants.Deadband ? xSpeed : 0.0;
-    ySpeed = Math.abs(ySpeed) > OIConstants.Deadband ? ySpeed : 0.0;
-    turningSpeed = Math.abs(turningSpeed) > OIConstants.Deadband ? turningSpeed : 0.0;
+    xSpeed = Math.abs(xSpeed) > IOConstants.Deadband ? xSpeed : 0.0;
+    ySpeed = Math.abs(ySpeed) > IOConstants.Deadband ? ySpeed : 0.0;
+    turningSpeed = Math.abs(turningSpeed) > IOConstants.Deadband ? turningSpeed : 0.0;
 
     // 3. Make the driving smoother
     xSpeed = xLimiter.calculate(xSpeed) * DriveConstants.MaxMPS;

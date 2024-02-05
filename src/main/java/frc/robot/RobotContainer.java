@@ -9,7 +9,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.LauncherConstants;
-import frc.robot.Constants.OIConstants;
+import frc.robot.Constants.SwerveDriveConstants.IOConstants;
 import frc.robot.commands.SwerveJoystickCmd;
 import frc.robot.commands.TeleLauncherCmd;
 import frc.robot.subsystems.LauncherMech;
@@ -27,25 +27,27 @@ import frc.robot.subsystems.SwerveDrive;
 public class RobotContainer {
   private final SwerveDrive swerveDrive = new SwerveDrive();
   private final LauncherMech shooterMech = new LauncherMech(LauncherConstants.launchMotor1, LauncherConstants.launchMotor2, LauncherConstants.feedMotor, LauncherConstants.armMotor);
-  private final Joystick driverJoystick = new Joystick(OIConstants.DriverControllerPort);
+  private final Joystick driverJoystick = new Joystick(IOConstants.DriverControllerPort);
   // The robot's subsystems and commands are defined here...
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
 
   /**
-   * The container for the robot. Contains subsystems, OI devices, and commands.
+   * The container for the robot. Contains subsystems, IO devices, and commands.
    */
   public RobotContainer() {
     swerveDrive.setDefaultCommand(new SwerveJoystickCmd(swerveDrive,
-      () -> driverJoystick.getRawAxis(OIConstants.DriverYAxis),
-      () -> driverJoystick.getRawAxis(OIConstants.DriverXAxis),
-      () -> -driverJoystick.getRawAxis(OIConstants.DriverRotAxis),
-      () -> !driverJoystick.getRawButton(OIConstants.DriverFieldOrientedButtonIdx)));
+      () -> driverJoystick.getRawAxis(IOConstants.DriverYAxis),
+      () -> driverJoystick.getRawAxis(IOConstants.DriverXAxis),
+      () -> -driverJoystick.getRawAxis(IOConstants.DriverRotAxis),
+      () -> !driverJoystick.getRawButton(IOConstants.DriverFieldOrientedButtonIdx)));
     
     shooterMech.setDefaultCommand(new TeleLauncherCmd(shooterMech,
-      () -> driverJoystick.getRawAxis(LauncherConstants.LaunchSpeedAxis),
-      () -> driverJoystick.getRawButton(LauncherConstants.FeedButtonIdx),
-      () -> driverJoystick.getRawButton(LauncherConstants.ReverseButtonIdx)));
+      () -> driverJoystick.getRawAxis(LauncherConstants.launchSpeedAxis),
+      () -> driverJoystick.getRawButton(LauncherConstants.feedButtonIdx),
+      () -> driverJoystick.getRawButton(LauncherConstants.reverseButtonIdx),
+      () -> driverJoystick.getRawButton(LauncherConstants.height1ButtonIdx),
+      () -> driverJoystick.getRawAxis(LauncherConstants.rawArmAxis)));
     // Configure the trigger bindings
     configureBindings();
   }

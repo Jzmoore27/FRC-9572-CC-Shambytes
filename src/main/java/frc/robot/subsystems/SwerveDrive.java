@@ -11,8 +11,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.ctre.phoenix6.hardware.Pigeon2;
 
-import frc.robot.Constants.DriveConstants;
-import frc.robot.Constants.SwerveConstants;
+import frc.robot.Constants.SwerveDriveConstants.*;
 
 public class SwerveDrive extends SubsystemBase {
 
