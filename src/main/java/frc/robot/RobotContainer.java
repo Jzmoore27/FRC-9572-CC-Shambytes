@@ -8,8 +8,11 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Constants.LauncherConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.commands.SwerveJoystickCmd;
+import frc.robot.commands.TeleLauncherCmd;
+import frc.robot.subsystems.LauncherMech;
 import frc.robot.subsystems.SwerveDrive;
 
 /**
@@ -23,6 +26,7 @@ import frc.robot.subsystems.SwerveDrive;
  */
 public class RobotContainer {
   private final SwerveDrive swerveDrive = new SwerveDrive();
+  private final LauncherMech shooterMech = new LauncherMech(LauncherConstants.launchMotor1, LauncherConstants.launchMotor2, LauncherConstants.feedMotor, LauncherConstants.armMotor);
   private final Joystick driverJoystick = new Joystick(OIConstants.DriverControllerPort);
   // The robot's subsystems and commands are defined here...
 
@@ -33,10 +37,15 @@ public class RobotContainer {
    */
   public RobotContainer() {
     swerveDrive.setDefaultCommand(new SwerveJoystickCmd(swerveDrive,
-        () -> -driverJoystick.getRawAxis(OIConstants.DriverYAxis),
-        () -> driverJoystick.getRawAxis(OIConstants.DriverXAxis),
-        () -> driverJoystick.getRawAxis(OIConstants.DriverRotAxis),
-        () -> !driverJoystick.getRawButton(OIConstants.DriverFieldOrientedButtonIdx)));
+      () -> driverJoystick.getRawAxis(OIConstants.DriverYAxis),
+      () -> driverJoystick.getRawAxis(OIConstants.DriverXAxis),
+      () -> -driverJoystick.getRawAxis(OIConstants.DriverRotAxis),
+      () -> !driverJoystick.getRawButton(OIConstants.DriverFieldOrientedButtonIdx)));
+    
+    shooterMech.setDefaultCommand(new TeleLauncherCmd(shooterMech,
+      () -> driverJoystick.getRawAxis(LauncherConstants.LaunchSpeedAxis),
+      () -> driverJoystick.getRawButton(LauncherConstants.FeedButtonIdx),
+      () -> driverJoystick.getRawButton(LauncherConstants.ReverseButtonIdx)));
     // Configure the trigger bindings
     configureBindings();
   }

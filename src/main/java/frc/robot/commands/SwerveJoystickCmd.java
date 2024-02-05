@@ -63,15 +63,16 @@ public class SwerveJoystickCmd extends Command {
     ChassisSpeeds chassisSpeeds;
     if (fieldOrientedFunction.get()) {
       // Relative to field
-      chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-          xSpeed, ySpeed, turningSpeed, swerveDrive.getRotation2d());
+      chassisSpeeds = new ChassisSpeeds(xSpeed, ySpeed, turningSpeed);
+      //IMP.  chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+      //IMP.      xSpeed, ySpeed, turningSpeed, swerveDrive.getRotation2d());
     } else {
       // Relative to robot
       chassisSpeeds = new ChassisSpeeds(xSpeed, ySpeed, turningSpeed);
     }
 
     // 5. Convert chassis speeds to individual module states
-    SwerveModuleState[] moduleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(chassisSpeeds);
+    SwerveModuleState[] moduleStates = DriveConstants.DriveKinematics.toSwerveModuleStates(chassisSpeeds);
 
     // 6. Output each module states to wheels
     swerveDrive.setDesiredStates(moduleStates);
