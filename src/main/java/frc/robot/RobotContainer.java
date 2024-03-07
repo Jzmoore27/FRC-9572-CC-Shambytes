@@ -4,12 +4,23 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.path.PathPlannerPath;
+
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.LauncherConstants;
 import frc.robot.Constants.SwerveDriveConstants.IOConstants;
+import frc.robot.commands.AutoIntake;
+import frc.robot.commands.AutoLaunchSpeed;
 import frc.robot.commands.SwerveJoystickCmd;
 import frc.robot.commands.TeleLauncherCmd;
 import frc.robot.subsystems.LauncherMech;
@@ -25,9 +36,13 @@ import frc.robot.subsystems.SwerveDrive;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
+  private final SendableChooser<Command> autoChooser;
+
   private final SwerveDrive swerveDrive = new SwerveDrive();
-  private final LauncherMech shooterMech = new LauncherMech(LauncherConstants.launchMotor1, LauncherConstants.launchMotor2, LauncherConstants.feedMotor, LauncherConstants.armMotor);
+  private final LauncherMech shooterMech = new LauncherMech(LauncherConstants.launchMotor1,
+      LauncherConstants.launchMotor2, LauncherConstants.feedMotor, LauncherConstants.armMotor);
   private final Joystick driverJoystick = new Joystick(IOConstants.DriverControllerPort);
+  private final Joystick coDriverJoystick = new Joystick(LauncherConstants.CoDriverControllerPort);
   // The robot's subsystems and commands are defined here...
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
@@ -36,18 +51,30 @@ public class RobotContainer {
    * The container for the robot. Contains subsystems, IO devices, and commands.
    */
   public RobotContainer() {
+    autoChooser = AutoBuilder.buildAutoChooser();
+
+    SmartDashboard.putData("Auto Chooser", autoChooser);
+
+    NamedCommands.registerCommand("AutoIntake", new AutoIntake(shooterMech));
+    NamedCommands.registerCommand("startArm", new AutoLaunchSpeed(shooterMech, LauncherConstants.maxLauncherSpeed));
+    NamedCommands.registerCommand("stopArm", new AutoLaunchSpeed(shooterMech, 0.0));
+ 
     swerveDrive.setDefaultCommand(new SwerveJoystickCmd(swerveDrive,
-      () -> driverJoystick.getRawAxis(IOConstants.DriverYAxis),
-      () -> driverJoystick.getRawAxis(IOConstants.DriverXAxis),
-      () -> -driverJoystick.getRawAxis(IOConstants.DriverRotAxis),
-      () -> !driverJoystick.getRawButton(IOConstants.DriverFieldOrientedButtonIdx)));
-    
+        () -> driverJoystick.getRawAxis(IOConstants.DriverYAxis),
+        () -> driverJoystick.getRawAxis(IOConstants.DriverXAxis),
+        () -> -driverJoystick.getRawAxis(IOConstants.DriverRotAxis),
+        () -> !driverJoystick.getRawButton(IOConstants.DriverFieldOrientedButtonIdx),
+        () -> !driverJoystick.getRawButton(IOConstants.zeroButtonIdx)));
+
     shooterMech.setDefaultCommand(new TeleLauncherCmd(shooterMech,
-      () -> driverJoystick.getRawAxis(LauncherConstants.launchSpeedAxis),
-      () -> driverJoystick.getRawButton(LauncherConstants.feedButtonIdx),
-      () -> driverJoystick.getRawButton(LauncherConstants.reverseButtonIdx),
-      () -> driverJoystick.getRawButton(LauncherConstants.height1ButtonIdx),
-      () -> driverJoystick.getRawAxis(LauncherConstants.rawArmAxis)));
+        () -> coDriverJoystick.getRawAxis(LauncherConstants.launchSpeedAxis),
+        () -> coDriverJoystick.getRawButton(LauncherConstants.feedButtonIdx),
+        () -> coDriverJoystick.getRawButton(LauncherConstants.reverseButtonIdx),
+        () -> coDriverJoystick.getRawButton(LauncherConstants.height1ButtonIdx),
+        () -> coDriverJoystick.getRawButton(LauncherConstants.height2ButtonIdx),
+        () -> coDriverJoystick.getRawButton(LauncherConstants.ampButtonIdx),
+        () -> coDriverJoystick.getRawButton(LauncherConstants.launchSpeedButtonIdx),
+        () -> coDriverJoystick.getRawAxis(LauncherConstants.rawArmAxis)));
     // Configure the trigger bindings
     configureBindings();
   }
@@ -76,7 +103,15 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // An example command will be run in autonomous
-    return null;
+
+    //return new PathPlannerAuto("Auto");
+
+    return new SequentialCommandGroup(
+        new AutoLaunchSpeed(shooterMech, LauncherConstants.maxLauncherSpeed),
+        new AutoSleep(2.0),
+        new AutoIntake(shooterMech),
+        new AutoSleep(0.4),
+        new AutoLaunchSpeed(shooterMech, 0.0)
+        );
   }
 }

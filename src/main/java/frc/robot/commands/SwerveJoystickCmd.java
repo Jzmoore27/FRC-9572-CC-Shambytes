@@ -9,6 +9,7 @@ import java.util.function.Supplier;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.SwerveDriveConstants.*;
 import frc.robot.subsystems.SwerveDrive;
@@ -17,16 +18,18 @@ public class SwerveJoystickCmd extends Command {
 
   private final SwerveDrive swerveDrive;
   private final Supplier<Double> xSpdFunction, ySpdFunction, turningSpdFunction;
-  private final Supplier<Boolean> fieldOrientedFunction;
+  private final Supplier<Boolean> fieldOrientedFunction, zeroButton;
   private final SlewRateLimiter xLimiter, yLimiter, turningLimiter;
+  private  Boolean fieldRelative, fPressed, zPressed = true;
 
   /** Creates a new SwerveJoystickCmd. */
   public SwerveJoystickCmd(SwerveDrive swerveDrive,
       Supplier<Double> xSpdFunction, Supplier<Double> ySpdFunction, Supplier<Double> turningSpdFunction,
-      Supplier<Boolean> fieldOrientedFunction) {
+      Supplier<Boolean> fieldOrientedFunction, Supplier<Boolean> zeroFunction) {
     this.swerveDrive = swerveDrive;
     this.xSpdFunction = xSpdFunction;
     this.ySpdFunction = ySpdFunction;
+    this.zeroButton = zeroFunction;
     this.turningSpdFunction = turningSpdFunction;
     this.fieldOrientedFunction = fieldOrientedFunction;
     this.xLimiter = new SlewRateLimiter(DriveConstants.MaxAccelerationUnitsPerSecond);
@@ -38,6 +41,7 @@ public class SwerveJoystickCmd extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
+    fieldRelative = true;
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -48,24 +52,42 @@ public class SwerveJoystickCmd extends Command {
     double ySpeed = ySpdFunction.get();
     double turningSpeed = turningSpdFunction.get();
 
+    if(!fieldOrientedFunction.get()){
+      if(!fPressed) {
+        fieldRelative = fieldRelative ? false: true;
+        fPressed = true;
+      }
+    }
+    else{fPressed = false;}
+
+    if(zeroButton.get()){
+      if(!zPressed) {
+        swerveDrive.zeroHeading();
+        zPressed = true;
+      }
+    }
+    else{zPressed = false;}
+
     // 2. Apply deadband
     xSpeed = Math.abs(xSpeed) > IOConstants.Deadband ? xSpeed : 0.0;
     ySpeed = Math.abs(ySpeed) > IOConstants.Deadband ? ySpeed : 0.0;
+
+    xSpeed = Math.abs(xSpeed) > 0.05 ? xSpeed : 0.0;
+    ySpeed = Math.abs(ySpeed) > 0.05 ? ySpeed : 0.0;
+    
     turningSpeed = Math.abs(turningSpeed) > IOConstants.Deadband ? turningSpeed : 0.0;
 
     // 3. Make the driving smoother
     xSpeed = xLimiter.calculate(xSpeed) * DriveConstants.MaxMPS;
     ySpeed = yLimiter.calculate(ySpeed) * DriveConstants.MaxMPS;
-    turningSpeed = turningLimiter.calculate(turningSpeed)
+    turningSpeed = turningLimiter.calculate(turningSpeed)*-1
         * DriveConstants.MaxAngularSpeedRPS;
 
     // 4. Construct desired chassis speeds
     ChassisSpeeds chassisSpeeds;
-    if (fieldOrientedFunction.get()) {
+    if (fieldRelative) {
       // Relative to field
-      chassisSpeeds = new ChassisSpeeds(xSpeed, ySpeed, turningSpeed);
-      //IMP.  chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-      //IMP.      xSpeed, ySpeed, turningSpeed, swerveDrive.getRotation2d());
+      chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, turningSpeed, swerveDrive.getRotation2d());
     } else {
       // Relative to robot
       chassisSpeeds = new ChassisSpeeds(xSpeed, ySpeed, turningSpeed);
@@ -76,6 +98,12 @@ public class SwerveJoystickCmd extends Command {
 
     // 6. Output each module states to wheels
     swerveDrive.setDesiredStates(moduleStates);
+
+    SmartDashboard.putBoolean("fieldOriented", fieldRelative);
+    SmartDashboard.putNumber("xSpeed", xSpeed);
+    SmartDashboard.putNumber("ySpeed", ySpeed);
+     SmartDashboard.putNumber("turnSpeed", turningSpeed);
+
   }
 
   // Called once the command ends or is interrupted.

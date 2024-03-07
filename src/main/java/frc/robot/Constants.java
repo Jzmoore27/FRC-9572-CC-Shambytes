@@ -6,6 +6,7 @@ package frc.robot;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -37,11 +38,11 @@ public final class Constants {
     }
 
     public static final class DriveConstants {
-      public static final double MaxMPS = 0.1;
-      public static final double MaxAccelerationUnitsPerSecond = 0.1;
-      public static final double MaxAngularAccelerationUnitsPerSecond = 0.1;
-      public static final double PhysicalMaxAngularSpeedRPS = 0.1 * 2 * Math.PI;
-      public static final double MaxAngularSpeedRPS = PhysicalMaxAngularSpeedRPS / 4;
+      public static final double MaxMPS = 0.025;
+      public static final double MaxAccelerationUnitsPerSecond = 0.5;
+      public static final double MaxAngularAccelerationUnitsPerSecond = 1.5;
+      public static final double PhysicalMaxAngularSpeedRPS = 0.05 * Math.PI;
+      public static final double MaxAngularSpeedRPS = PhysicalMaxAngularSpeedRPS / 8;
 
       public static final double WheelBase = Units.inchesToMeters(25.5);
       public static final double TrackWidth = Units.inchesToMeters(21);
@@ -53,37 +54,60 @@ public final class Constants {
           new Translation2d(-WheelBase / 2, TrackWidth / 2));
     }
 
+    public static final class AutoConstants {
+        public static final double MaxSpeedMetersPerSecond = DriveConstants.MaxMPS / 4;
+        public static final double MaxAngularSpeedRadiansPerSecond = //
+                DriveConstants.MaxMPS / 10;
+        public static final double MaxAccelerationMetersPerSecondSquared = 3;
+        public static final double MaxAngularAccelerationRadiansPerSecondSquared = Math.PI / 4;
+        public static final double PXController = 1.5;
+        public static final double PYController = 1.5;
+        public static final double PThetaController = 3;
+
+        public static final TrapezoidProfile.Constraints kThetaControllerConstraints = //
+                new TrapezoidProfile.Constraints(
+                        MaxAngularSpeedRadiansPerSecond,
+                        MaxAngularAccelerationRadiansPerSecondSquared);
+    }
+
     public static final class IOConstants {
       public static final int DriverControllerPort = 0;
 
       public static final int DriverXAxis = 0;
       public static final int DriverYAxis = 1;
       public static final int DriverRotAxis = 4;
-      public static final int DriverFieldOrientedButtonIdx = 1;
+      public static final int DriverFieldOrientedButtonIdx = 4;
+      public static final int zeroButtonIdx = 8;
 
       public static final double Deadband = 0.05;
     }
   }
+
   public static final class LauncherConstants {
-    //Motors -- in order from first to last on CAN bus
+    // Motors -- in order from first to last on CAN bus
     public static final TalonFX launchMotor1 = new TalonFX(10);
     public static final TalonFX launchMotor2 = new TalonFX(11);
     public static final TalonFX feedMotor = new TalonFX(9);
     public static final TalonFX armMotor = new TalonFX(8);
-    //Motor Ratio
-    public static final double armMotorRatio = 1;
-    //Speeds
+    // Motor Ratio
+    public static final double armMotorRatio = 0.002747252747;
+    // Speeds
     public static final double maxLauncherSpeed = 0.7;
-    public static final double feedSpeed = 0.35;
-    public static final double reversedLauncherMultiplier = 0.5;
-    //Limiters
-    public static final double launcherLimitRate = 0.1;
-    public static final double feedLimitRate = 0.1;
-    //Controller
-    public static final int launchSpeedAxis = 3;  //Right Trigger
-    public static final int rawArmAxis = 3;  //Right Trigger
-    public static final int feedButtonIdx = 6;    //Right Button
-    public static final int reverseButtonIdx = 5; //Left Button
-    public static final int height1ButtonIdx = 0; //
-  } 
+    public static final double maxAmpSpeed = 0.3;
+    public static final double feedSpeed = 0.2;
+    public static final double reversedLauncherMultiplier = 0.6;
+    // Limiters
+    public static final double feedLimitRate = 0.2;
+    // Controller
+    public static final int CoDriverControllerPort = 1;
+    // Buttons
+    public static final int launchSpeedAxis = 3; // Right Trigger
+    public static final int rawArmAxis = 5; // Right Joystick Up/Down
+    public static final int feedButtonIdx = 6; // Right Button
+    public static final int reverseButtonIdx = 5; // Left Button
+    public static final int ampButtonIdx = 3; // Y Button
+    public static final int height2ButtonIdx = 2; // B Button
+    public static final int height1ButtonIdx = 1; // A Button 
+    public static final int launchSpeedButtonIdx = 3; // X Button 
+  }
 }

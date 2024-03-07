@@ -4,10 +4,12 @@
 
 package frc.robot.subsystems;
 
+
 import frc.robot.Constants.SwerveDriveConstants.*;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -90,7 +92,7 @@ public class SwerveModule extends SubsystemBase {
   }
 
   // State handling
-  private SwerveModuleState getState() {
+  public SwerveModuleState getState() {
     return new SwerveModuleState(getDriveSpeed(), new Rotation2d(getAbsEncoderRad()));
     // DONE-- Change to Return in
     // radians
@@ -108,6 +110,13 @@ public class SwerveModule extends SubsystemBase {
       return;
     }
     turningMotor.set(turningPIDController.calculate(getAbsEncoderRad(), state.angle.getRadians()));
+    }
+  
+  public SwerveModulePosition getPosition(){
+        return new SwerveModulePosition(
+            getDrivePosition(),
+            new Rotation2d(getAbsEncoderRad())
+        );
     }
 
   @Override
