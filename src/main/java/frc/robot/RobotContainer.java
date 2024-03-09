@@ -6,20 +6,21 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.path.PathPlannerPath;
+//import com.pathplanner.lib.commands.PathPlannerAuto;
+//import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
+//import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.LauncherConstants;
 import frc.robot.Constants.SwerveDriveConstants.IOConstants;
 import frc.robot.commands.AutoIntake;
+import frc.robot.commands.AutoSleep;
 import frc.robot.commands.AutoLaunchSpeed;
 import frc.robot.commands.SwerveJoystickCmd;
 import frc.robot.commands.TeleLauncherCmd;
@@ -38,7 +39,7 @@ import frc.robot.subsystems.SwerveDrive;
 public class RobotContainer {
   private final SendableChooser<Command> autoChooser;
 
-  private final SwerveDrive swerveDrive = new SwerveDrive();
+  private final SwerveDrive swerveDrive;
   private final LauncherMech shooterMech = new LauncherMech(LauncherConstants.launchMotor1,
       LauncherConstants.launchMotor2, LauncherConstants.feedMotor, LauncherConstants.armMotor);
   private final Joystick driverJoystick = new Joystick(IOConstants.DriverControllerPort);
@@ -51,13 +52,21 @@ public class RobotContainer {
    * The container for the robot. Contains subsystems, IO devices, and commands.
    */
   public RobotContainer() {
-    autoChooser = AutoBuilder.buildAutoChooser();
+    swerveDrive = new SwerveDrive();
 
+    autoChooser = AutoBuilder.buildAutoChooser();
     SmartDashboard.putData("Auto Chooser", autoChooser);
 
     NamedCommands.registerCommand("AutoIntake", new AutoIntake(shooterMech));
     NamedCommands.registerCommand("startArm", new AutoLaunchSpeed(shooterMech, LauncherConstants.maxLauncherSpeed));
     NamedCommands.registerCommand("stopArm", new AutoLaunchSpeed(shooterMech, 0.0));
+    NamedCommands.registerCommand("Preload", new SequentialCommandGroup(
+        new AutoLaunchSpeed(shooterMech, LauncherConstants.maxLauncherSpeed),
+        new AutoSleep(2.0),
+        new AutoIntake(shooterMech),
+        new AutoSleep(0.4),
+        new AutoLaunchSpeed(shooterMech, 0.0)
+        ));
  
     swerveDrive.setDefaultCommand(new SwerveJoystickCmd(swerveDrive,
         () -> driverJoystick.getRawAxis(IOConstants.DriverYAxis),
@@ -106,12 +115,14 @@ public class RobotContainer {
 
     //return new PathPlannerAuto("Auto");
 
-    return new SequentialCommandGroup(
+    /*return new SequentialCommandGroup(
         new AutoLaunchSpeed(shooterMech, LauncherConstants.maxLauncherSpeed),
         new AutoSleep(2.0),
         new AutoIntake(shooterMech),
         new AutoSleep(0.4),
         new AutoLaunchSpeed(shooterMech, 0.0)
-        );
+        );*/
+
+      return autoChooser.getSelected();
   }
 }

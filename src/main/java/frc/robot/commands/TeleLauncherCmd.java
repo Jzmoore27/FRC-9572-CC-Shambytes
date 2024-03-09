@@ -98,7 +98,7 @@ public class TeleLauncherCmd extends Command {
     }
 
     if(height2Supplier.get()){
-      targetAngle = 62.0;
+      targetAngle = 64.0;
     }
 
     if((Math.abs(targetAngle-launcherMech.getAbsPositionDeg())>1)){
