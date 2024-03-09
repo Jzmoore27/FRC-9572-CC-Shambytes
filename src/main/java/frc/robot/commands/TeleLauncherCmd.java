@@ -18,7 +18,7 @@ public class TeleLauncherCmd extends Command {
   Supplier<Double> launcherSpeedSupplier, rawArmSupplier;
   Supplier<Boolean> feedOnSupplier, reversedSupplier, height1Supplier, height2Supplier, speedToggle, ampControl;
   Double maxLauncherSpeed, launcherSpeed, feedSpeed, reverseMultiplier, rawArm;
-  Double targetAngle = 0.0;
+  Double targetAngle = 64.0;
   Boolean feedOn, reversed, pressed;
   SlewRateLimiter feedLimiter = new SlewRateLimiter(LauncherConstants.feedLimitRate);
   PIDController armPID = new PIDController(0.3, 0, 0.01);
