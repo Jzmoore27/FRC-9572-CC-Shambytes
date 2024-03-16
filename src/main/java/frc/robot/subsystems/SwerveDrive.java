@@ -28,7 +28,7 @@ public class SwerveDrive extends SubsystemBase {
     SwerveConstants.frMotor0,
     SwerveConstants.frMotor1,
     true,
-    true,
+    false,
     SwerveConstants.frAbsEncoder,
     false,
     3);
@@ -36,7 +36,7 @@ public class SwerveDrive extends SubsystemBase {
     SwerveConstants.flMotor0,
     SwerveConstants.flMotor1,
     true,
-    true,
+    false,
     SwerveConstants.flAbsEncoder,
     false,
     32);
@@ -44,7 +44,7 @@ public class SwerveDrive extends SubsystemBase {
     SwerveConstants.brMotor0,
     SwerveConstants.brMotor1,
     true,
-    false,
+    true,
     SwerveConstants.brAbsEncoder,
     false,
     338);
@@ -52,18 +52,19 @@ public class SwerveDrive extends SubsystemBase {
     SwerveConstants.blMotor0,
     SwerveConstants.blMotor1,
     true,
-    true,
+    false,
     SwerveConstants.blAbsEncoder,
     false,
     10);
 
   private final Pigeon2 gyro = new Pigeon2(0);
   private final SwerveDriveOdometry odometer = new SwerveDriveOdometry(DriveConstants.DriveKinematics,
-            new Rotation2d(0),new SwerveModulePosition[] {
-              flModule.getPosition(),
+            new Rotation2d(0),
+            new SwerveModulePosition[] {
               frModule.getPosition(),
-              blModule.getPosition(),
-              brModule.getPosition()
+              flModule.getPosition(),
+              brModule.getPosition(),
+              blModule.getPosition()
             });
 
   public SwerveDrive() {
@@ -75,9 +76,9 @@ public class SwerveDrive extends SubsystemBase {
             this::getCurrentSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
             this::drive, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
             new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
-                    new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
-                    new PIDConstants(5.0, 0.0, 0.0), // Rotation PID constants
-                    4.5, // Max module speed, in m/s
+                    new PIDConstants(0.5, 0.0, 0.0), // Translation PID constants
+                    new PIDConstants(0.5, 0.0, 0.0), // Rotation PID constants
+                    1, // Max module speed, in m/s
                     0.4, // Drive base radius in meters. Distance from robot center to furthest module.
                     new ReplanningConfig() // Default path replanning config. See the API for the options here
             ),
@@ -119,20 +120,20 @@ public class SwerveDrive extends SubsystemBase {
     }
 
   public void resetPose(Pose2d pose) {
-      odometer.resetPosition(getRotation2d(), new SwerveModulePosition[]{flModule.getPosition(),frModule.getPosition(),blModule.getPosition(),brModule.getPosition()}, pose);
+      odometer.resetPosition(getRotation2d(), new SwerveModulePosition[]{frModule.getPosition(),flModule.getPosition(),brModule.getPosition(),blModule.getPosition()}, pose);
   }
 
   public ChassisSpeeds getCurrentSpeeds() {
-    return DriveConstants.DriveKinematics.toChassisSpeeds(flModule.getState(),frModule.getState(),blModule.getState(),brModule.getState());
+    return DriveConstants.DriveKinematics.toChassisSpeeds(frModule.getState(),flModule.getState(),brModule.getState(),blModule.getState());
   }
 
   @Override
   public void periodic() {
     odometer.update(getRotation2d(), new SwerveModulePosition[] {
-              flModule.getPosition(),
               frModule.getPosition(),
-              blModule.getPosition(),
-              brModule.getPosition()
+              flModule.getPosition(),
+              brModule.getPosition(),
+              blModule.getPosition()
             });
     SmartDashboard.putNumber("Robot Heading", getHeading());
     SmartDashboard.putString("Robot Location", getPose().getTranslation().toString());
@@ -154,6 +155,6 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   public void drive(ChassisSpeeds chassisSpeeds) {
-    DriveConstants.DriveKinematics.toSwerveModuleStates(chassisSpeeds);
+    setDesiredStates(DriveConstants.DriveKinematics.toSwerveModuleStates(chassisSpeeds));
   }
 }

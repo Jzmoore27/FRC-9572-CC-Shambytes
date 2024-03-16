@@ -29,9 +29,9 @@ public class LauncherMech extends SubsystemBase {
   }
 
   // Note Handling
-  public void setLaunchSpeed(Double speed) {
-    launchMotor1.set(speed);
-    launchMotor2.set(speed);
+  public void setLaunchSpeed(Double LowerSpeed, Double UpperSpeed) {
+    launchMotor1.set(LowerSpeed);
+    launchMotor2.set(UpperSpeed);
   }
 
   public void setFeedSpeed(Double speed) {

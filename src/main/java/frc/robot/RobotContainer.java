@@ -43,6 +43,7 @@ public class RobotContainer {
   private final LauncherMech shooterMech = new LauncherMech(LauncherConstants.launchMotor1,
       LauncherConstants.launchMotor2, LauncherConstants.feedMotor, LauncherConstants.armMotor);
   private final Joystick driverJoystick = new Joystick(IOConstants.DriverControllerPort);
+  private final Joystick driverJoystick2 = new Joystick(IOConstants.DriverController2Port);
   private final Joystick coDriverJoystick = new Joystick(LauncherConstants.CoDriverControllerPort);
   // The robot's subsystems and commands are defined here...
 
@@ -69,11 +70,11 @@ public class RobotContainer {
         ));
  
     swerveDrive.setDefaultCommand(new SwerveJoystickCmd(swerveDrive,
-        () -> driverJoystick.getRawAxis(IOConstants.DriverYAxis),
-        () -> driverJoystick.getRawAxis(IOConstants.DriverXAxis),
-        () -> -driverJoystick.getRawAxis(IOConstants.DriverRotAxis),
-        () -> !driverJoystick.getRawButton(IOConstants.DriverFieldOrientedButtonIdx),
-        () -> !driverJoystick.getRawButton(IOConstants.zeroButtonIdx)));
+        () -> driverJoystick.getRawAxis(IOConstants.DriverYAxis)*1.2,
+        () -> driverJoystick.getRawAxis(IOConstants.DriverXAxis)*1.2,
+        () -> -driverJoystick2.getRawAxis(IOConstants.DriverRotAxis),
+        () -> !driverJoystick2.getRawButton(IOConstants.DriverFieldOrientedButtonIdx),
+        () -> !driverJoystick2.getRawButton(IOConstants.zeroButtonIdx)));
 
     shooterMech.setDefaultCommand(new TeleLauncherCmd(shooterMech,
         () -> coDriverJoystick.getRawAxis(LauncherConstants.launchSpeedAxis),

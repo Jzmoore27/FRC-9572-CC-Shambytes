@@ -38,14 +38,14 @@ public final class Constants {
     }
 
     public static final class DriveConstants {
-      public static final double MaxMPS = 0.025;
-      public static final double MaxAccelerationUnitsPerSecond = 0.5;
+      public static final double MaxMPS = 1;
+      public static final double MaxAccelerationUnitsPerSecond = 1;
       public static final double MaxAngularAccelerationUnitsPerSecond = 1.5;
-      public static final double PhysicalMaxAngularSpeedRPS = 0.05 * Math.PI;
-      public static final double MaxAngularSpeedRPS = PhysicalMaxAngularSpeedRPS / 8;
+      public static final double PhysicalMaxAngularSpeedRPS = 4 * Math.PI;
+      public static final double MaxAngularSpeedRPS = PhysicalMaxAngularSpeedRPS / 4;
 
-      public static final double WheelBase = Units.inchesToMeters(25.5);
-      public static final double TrackWidth = Units.inchesToMeters(21);
+      public static final double WheelBase = Units.inchesToMeters(25);
+      public static final double TrackWidth = Units.inchesToMeters(5);
 
       public static final SwerveDriveKinematics DriveKinematics = new SwerveDriveKinematics(
           new Translation2d(WheelBase / 2, -TrackWidth / 2),
@@ -56,8 +56,7 @@ public final class Constants {
 
     public static final class AutoConstants {
         public static final double MaxSpeedMetersPerSecond = DriveConstants.MaxMPS / 4;
-        public static final double MaxAngularSpeedRadiansPerSecond = //
-                DriveConstants.MaxMPS / 10;
+        public static final double MaxAngularSpeedRadiansPerSecond = DriveConstants.MaxMPS / 10;
         public static final double MaxAccelerationMetersPerSecondSquared = 3;
         public static final double MaxAngularAccelerationRadiansPerSecondSquared = Math.PI / 4;
         public static final double PXController = 1.5;
@@ -72,12 +71,13 @@ public final class Constants {
 
     public static final class IOConstants {
       public static final int DriverControllerPort = 0;
+      public static final int DriverController2Port = 1;
 
       public static final int DriverXAxis = 0;
       public static final int DriverYAxis = 1;
-      public static final int DriverRotAxis = 4;
+      public static final int DriverRotAxis = 0;
       public static final int DriverFieldOrientedButtonIdx = 4;
-      public static final int zeroButtonIdx = 8;
+      public static final int zeroButtonIdx = 3;
 
       public static final double Deadband = 0.05;
     }
@@ -93,13 +93,13 @@ public final class Constants {
     public static final double armMotorRatio = 0.002747252747;
     // Speeds
     public static final double maxLauncherSpeed = 0.7;
-    public static final double maxAmpSpeed = 0.3;
+    public static final double maxAmpSpeed = 0.2;
     public static final double feedSpeed = 0.2;
     public static final double reversedLauncherMultiplier = 0.6;
     // Limiters
     public static final double feedLimitRate = 0.2;
     // Controller
-    public static final int CoDriverControllerPort = 1;
+    public static final int CoDriverControllerPort = 2;
     // Buttons
     public static final int launchSpeedAxis = 3; // Right Trigger
     public static final int rawArmAxis = 5; // Right Joystick Up/Down

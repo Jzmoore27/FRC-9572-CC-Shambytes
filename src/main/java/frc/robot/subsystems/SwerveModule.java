@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.lang.Math;
@@ -35,6 +36,7 @@ public class SwerveModule extends SubsystemBase {
     // Reverse Motors
     driveMotor.setInverted(driveMotorReversed);
     turningMotor.setInverted(turningMotorReversed);
+    driveMotor.setNeutralMode(NeutralModeValue.Brake);
 
     // initialize PIDController
     turningPIDController = new PIDController(SwerveConstants.PIDProportional, 0, 0.01);
@@ -52,7 +54,7 @@ public class SwerveModule extends SubsystemBase {
 
   // Return Methods
   public double getDrivePosition() {
-    return (driveMotor.getPosition().getValue() * SwerveConstants.driveWheelCircumferenceMeters);
+    return (driveMotor.getPosition().getValue() * (1/6.75) * SwerveConstants.driveWheelCircumferenceMeters);
   }
 
   public double getTurningPosition() {
@@ -104,7 +106,7 @@ public class SwerveModule extends SubsystemBase {
       stop();
       return;
     }
-    driveMotor.set(state.speedMetersPerSecond / DriveConstants.MaxMPS);
+    driveMotor.set(state.speedMetersPerSecond);
     if(Math.abs(getAbsEncoderRad() - state.angle.getRadians())<0.001){
       turningMotor.set(0);
       return;

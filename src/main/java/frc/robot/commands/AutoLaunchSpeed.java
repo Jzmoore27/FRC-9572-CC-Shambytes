@@ -21,7 +21,7 @@ public class AutoLaunchSpeed extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    launcherMech.setLaunchSpeed(speed);
+    launcherMech.setLaunchSpeed(speed, speed);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
