@@ -6,6 +6,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -29,9 +30,9 @@ public class LauncherMech extends SubsystemBase {
   }
 
   // Note Handling
-  public void setLaunchSpeed(Double speed) {
-    launchMotor1.set(speed);
-    launchMotor2.set(speed);
+  public void setLaunchSpeed(Double LowerSpeed, Double UpperSpeed) {
+    launchMotor1.set(LowerSpeed);
+    launchMotor2.set(UpperSpeed);
   }
 
   public void setFeedSpeed(Double speed) {
@@ -62,7 +63,7 @@ public class LauncherMech extends SubsystemBase {
   }
 
   public double getAbsPositionDeg() {
-    return (absArm.get() * 360) - 11.2;
+    return (absArm.get() * 360) - 11.5;
   }
 
   public void setArmSpeed(Double speed) {
@@ -75,6 +76,6 @@ public class LauncherMech extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
+    SmartDashboard.putNumber("absAngle", getAbsPositionDeg());
   }
 }

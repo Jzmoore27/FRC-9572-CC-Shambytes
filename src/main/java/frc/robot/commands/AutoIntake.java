@@ -14,7 +14,6 @@ private LauncherMech launcherMech;
   /** Creates a new SetAutoLaunchSpeed. */
   public AutoIntake(LauncherMech launcherMech) {
     this.launcherMech = launcherMech;
-    addRequirements(launcherMech);
   }
 
   // Called when the command is initially scheduled.
@@ -36,6 +35,6 @@ private LauncherMech launcherMech;
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return launcherMech.getProxSensorValue();
+    return !launcherMech.getProxSensorValue();
   }
 }

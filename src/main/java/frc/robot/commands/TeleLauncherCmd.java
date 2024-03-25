@@ -16,8 +16,8 @@ import frc.robot.Constants.*;
 public class TeleLauncherCmd extends Command {
   LauncherMech launcherMech;
   Supplier<Double> launcherSpeedSupplier, rawArmSupplier;
-  Supplier<Boolean> feedOnSupplier, reversedSupplier, height1Supplier, height2Supplier, speedToggle, ampControl;
-  Double maxLauncherSpeed, launcherSpeed, feedSpeed, reverseMultiplier, rawArm;
+  Supplier<Boolean> feedOnSupplier, reversedSupplier, height1Supplier, height2Supplier, speedToggle, ampControl, trapControl;
+  Double maxLauncherSpeed1, maxLauncherSpeed2, launcherSpeed1, launcherSpeed2, feedSpeed, reverseMultiplier, rawArm;
   Double targetAngle = 0.0;
   Boolean feedOn, reversed, pressed;
   SlewRateLimiter feedLimiter = new SlewRateLimiter(LauncherConstants.feedLimitRate);
@@ -35,7 +35,8 @@ public class TeleLauncherCmd extends Command {
     this.speedToggle = speedToggle;
     this.ampControl = ampControl;
     this.rawArmSupplier = rawArm;
-    this.maxLauncherSpeed = LauncherConstants.maxLauncherSpeed;
+    this.maxLauncherSpeed1 = LauncherConstants.maxLauncherSpeed;
+    this.maxLauncherSpeed2 = LauncherConstants.maxLauncherSpeed;
     this.pressed = false;
 
     addRequirements(launcherMech);
@@ -56,7 +57,8 @@ public class TeleLauncherCmd extends Command {
 
     // Get supplied data
     reversed = reversedSupplier.get();
-    launcherSpeed = launcherSpeedSupplier.get();
+    launcherSpeed1 = launcherSpeedSupplier.get();
+    launcherSpeed2 = launcherSpeedSupplier.get();
     feedOn = feedOnSupplier.get();
     // calculate feed motor speed
     feedSpeed = feedOn ? LauncherConstants.feedSpeed * reverseMultiplier : 0;
@@ -65,50 +67,55 @@ public class TeleLauncherCmd extends Command {
     reverseMultiplier = reversed ? -1.0 : 1.0;
     // set launcher wheel speed
     if(ampControl.get()){
-     maxLauncherSpeed = LauncherConstants.maxAmpSpeed;
+     maxLauncherSpeed1 = LauncherConstants.maxAmpSpeed;
+     maxLauncherSpeed2 = LauncherConstants.maxAmpSpeed+0.2;
     }
-    else{
-      maxLauncherSpeed = LauncherConstants.maxLauncherSpeed;
+    else {
+      maxLauncherSpeed1 = LauncherConstants.maxLauncherSpeed;
+      maxLauncherSpeed2 = LauncherConstants.maxLauncherSpeed;
     }
-    if (launcherSpeed > 0) {
-      launcherSpeed = (launcherSpeed > maxLauncherSpeed) ? maxLauncherSpeed
-          : launcherSpeed;
-      launcherSpeed = launcherSpeed * reverseMultiplier;
-      launcherSpeed = reversed ? launcherSpeed * LauncherConstants.reversedLauncherMultiplier : launcherSpeed;
-      //launcherSpeed = launchLimiter.calculate(launcherSpeed);
-      launcherMech.setLaunchSpeed(launcherSpeed);
+    if (launcherSpeed1 > 0) {
+      launcherSpeed1 = (launcherSpeed1 > maxLauncherSpeed1) ? maxLauncherSpeed1
+          : launcherSpeed1;
+      launcherSpeed2 = (launcherSpeed2 > maxLauncherSpeed2) ? maxLauncherSpeed2
+          : launcherSpeed2;
+      launcherSpeed1 = launcherSpeed1 * reverseMultiplier;
+      launcherSpeed1 = reversed ? launcherSpeed1 * LauncherConstants.reversedLauncherMultiplier : launcherSpeed1;
+      launcherSpeed2 = launcherSpeed2 * reverseMultiplier;
+      launcherSpeed2 = reversed ? launcherSpeed2 * LauncherConstants.reversedLauncherMultiplier : launcherSpeed2;
+      launcherMech.setLaunchSpeed(launcherSpeed1, launcherSpeed2);
     }
 
     // stop launch motor
     else {
-      launcherMech.setLaunchSpeed(0.0);
+      launcherMech.setLaunchSpeed(0.0, 0.0);
     }
     // Set feed motor speed
     launcherMech.setFeedSpeed(feedSpeed);
 
     // END OF NOTE CODE / START OF ARM CODE
 
-    SmartDashboard.putNumber("absAngle", launcherMech.getAbsPositionDeg());
-    SmartDashboard.putNumber("armdiff", Math.abs(targetAngle-launcherMech.getAbsPositionDeg()));
+    SmartDashboard.putNumber("armdiff", Math.abs(launcherMech.getAbsPositionDeg()));
     SmartDashboard.putNumber("targetAngle", targetAngle);
     SmartDashboard.putBoolean("proxSensor", launcherMech.getProxSensorValue());
     
     if(height1Supplier.get()){
-      targetAngle = 0.0;
+      targetAngle = 2.0;
     }
 
     if(height2Supplier.get()){
-      targetAngle = 62.0;
+      targetAngle = 65.0;
     }
 
-    if((Math.abs(targetAngle-launcherMech.getAbsPositionDeg())>1)){
+    if((Math.abs(targetAngle-launcherMech.getAbsPositionDeg())>2)){
       launcherMech.setArmSpeed(armPID.calculate(launcherMech.getAbsPositionDeg(),targetAngle));}
     else{
       launcherMech.stopArm();
     }
     if(speedToggle.get()){
       if(!pressed) {
-        maxLauncherSpeed = maxLauncherSpeed == 0.7 ? 0.3: 0.7;
+        maxLauncherSpeed1 = maxLauncherSpeed1 == 0.7 ? 0.3: 0.7;
+        maxLauncherSpeed2 = maxLauncherSpeed2 == 0.7 ? 0.3: 0.7;
         pressed = true;
       }
     }

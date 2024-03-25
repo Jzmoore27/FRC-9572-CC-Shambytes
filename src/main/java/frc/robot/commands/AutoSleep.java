@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 
 public class AutoSleep extends Command {
   private Double time;
-  private double currentTime = 0.0;
+  private Double currentTime = 0.0;
   /** Creates a new AutoSleep. */
   public AutoSleep(Double time) {
     this.time = time;

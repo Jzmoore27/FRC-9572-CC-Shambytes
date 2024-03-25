@@ -5,23 +5,22 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants.LauncherConstants;
 import frc.robot.subsystems.LauncherMech;
 
-public class AutoLaunchSpeed extends Command {
-  private LauncherMech launcherMech;
-  private Double speed;
-  /** Creates a new AutoLaunchSpeed. */
-  public AutoLaunchSpeed(LauncherMech launcherMech, Double speed) {
-    this.launcherMech = launcherMech;
-    this.speed = speed;
+public class AutoExtake extends Command {
+private LauncherMech launcherMech;
 
+  /** Creates a new SetAutoLaunchSpeed. */
+  public AutoExtake(LauncherMech launcherMech) {
+    this.launcherMech = launcherMech;
     addRequirements(launcherMech);
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    launcherMech.setLaunchSpeed(speed, speed);
+    launcherMech.setFeedSpeed(LauncherConstants.feedSpeed);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -30,11 +29,13 @@ public class AutoLaunchSpeed extends Command {
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) {
+    launcherMech.setFeedSpeed(0.0);
+  }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return true;
+    return launcherMech.getProxSensorValue();
   }
 }
