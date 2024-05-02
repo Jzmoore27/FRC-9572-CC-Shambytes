@@ -7,21 +7,19 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.LauncherMech;
 
-public class AutoLaunchSpeed extends Command {
+public class feedSpeed extends Command {
   private LauncherMech launcherMech;
   private Double speed;
-  /** Creates a new AutoLaunchSpeed. */
-  public AutoLaunchSpeed(LauncherMech launcherMech, Double speed) {
+  /** Creates a new FeedSpeed. */
+  public feedSpeed(LauncherMech launcherMech, Double speed) {
     this.launcherMech = launcherMech;
     this.speed = speed;
-
-    addRequirements(launcherMech);
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    launcherMech.setLaunchSpeed(speed, speed);
+    launcherMech.setFeedSpeed(speed);
   }
 
   // Called every time the scheduler runs while the command is scheduled.

@@ -17,16 +17,18 @@ public class TeleLauncherCmd extends Command {
   LauncherMech launcherMech;
   Supplier<Double> launcherSpeedSupplier, rawArmSupplier;
   Supplier<Boolean> feedOnSupplier, reversedSupplier, height1Supplier, height2Supplier, speedToggle, ampControl, trapControl;
-  Double maxLauncherSpeed1, maxLauncherSpeed2, launcherSpeed1, launcherSpeed2, feedSpeed, reverseMultiplier, rawArm;
-  Double targetAngle = 0.0;
+  Double maxLauncherSpeed1, maxLauncherSpeed2, launcherSpeed1, launcherSpeed2, feedSpeed, reverseMultiplier = 1.0, rawArm;
+  Double targetAngle = 1.0;
   Boolean feedOn, reversed, pressed;
   SlewRateLimiter feedLimiter = new SlewRateLimiter(LauncherConstants.feedLimitRate);
-  PIDController armPID = new PIDController(0.3, 0, 0.01);
+  PIDController armDownPID = new PIDController(0.4, 0, 0.01);
+  PIDController armUpPID = new PIDController(0.4, 0.1, 0.02);
 
   /** Creates a new TeleLauncherCmd. */
   public TeleLauncherCmd(LauncherMech launcherMech, Supplier<Double> launcherSpeed, Supplier<Boolean> feedOn,
       Supplier<Boolean> reversed, Supplier<Boolean> height1, Supplier<Boolean> height2, Supplier<Boolean> speedToggle, Supplier<Boolean> ampControl, Supplier<Double> rawArm) {
     this.launcherMech = launcherMech;
+    this.targetAngle = 1.0;
     this.launcherSpeedSupplier = launcherSpeed;
     this.feedOnSupplier = feedOn;
     this.reversedSupplier = reversed;
@@ -60,15 +62,15 @@ public class TeleLauncherCmd extends Command {
     launcherSpeed1 = launcherSpeedSupplier.get();
     launcherSpeed2 = launcherSpeedSupplier.get();
     feedOn = feedOnSupplier.get();
+    reverseMultiplier = reversed ? -1.0 : 1.0;
     // calculate feed motor speed
     feedSpeed = feedOn ? LauncherConstants.feedSpeed * reverseMultiplier : 0;
     //feedSpeed = !(launcherSpeed > 0)&&!launcherMech.getProxSensorValue() ? 0.0 : feedSpeed;
     // apply reverse speeds
-    reverseMultiplier = reversed ? -1.0 : 1.0;
     // set launcher wheel speed
     if(ampControl.get()){
      maxLauncherSpeed1 = LauncherConstants.maxAmpSpeed;
-     maxLauncherSpeed2 = LauncherConstants.maxAmpSpeed+0.2;
+     maxLauncherSpeed2 = LauncherConstants.maxAmpSpeed-0.08;
     }
     else {
       maxLauncherSpeed1 = LauncherConstants.maxLauncherSpeed;
@@ -95,20 +97,21 @@ public class TeleLauncherCmd extends Command {
 
     // END OF NOTE CODE / START OF ARM CODE
 
-    SmartDashboard.putNumber("armdiff", Math.abs(launcherMech.getAbsPositionDeg()));
+    SmartDashboard.putNumber("armdiff", Math.abs(launcherMech.getAbsPositionDeg()-targetAngle));
     SmartDashboard.putNumber("targetAngle", targetAngle);
-    SmartDashboard.putBoolean("proxSensor", launcherMech.getProxSensorValue());
     
     if(height1Supplier.get()){
-      targetAngle = 2.0;
+      targetAngle = 1.75;
     }
 
     if(height2Supplier.get()){
-      targetAngle = 65.0;
+      targetAngle = 70.5;
     }
 
-    if((Math.abs(targetAngle-launcherMech.getAbsPositionDeg())>2)){
-      launcherMech.setArmSpeed(armPID.calculate(launcherMech.getAbsPositionDeg(),targetAngle));}
+    if((targetAngle-launcherMech.getAbsPositionDeg()>2)){
+      launcherMech.setArmSpeed(armDownPID.calculate(launcherMech.getAbsPositionDeg(),targetAngle));}
+    else if((targetAngle-launcherMech.getAbsPositionDeg()<-2)){
+      launcherMech.setArmSpeed(armUpPID.calculate(launcherMech.getAbsPositionDeg(),targetAngle));}
     else{
       launcherMech.stopArm();
     }
@@ -119,7 +122,8 @@ public class TeleLauncherCmd extends Command {
         pressed = true;
       }
     }
-    else{pressed = false;}
+    else
+    {pressed = false;}
   }
 
   // Called once the command ends or is interrupted.

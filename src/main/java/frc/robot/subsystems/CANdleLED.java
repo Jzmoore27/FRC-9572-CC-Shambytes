@@ -19,12 +19,18 @@ public class CANdleLED extends SubsystemBase {
     CANdleConfiguration config = new CANdleConfiguration();
 
     config.stripType = LEDStripType.RGB;
-    config.brightnessScalar = 0.5;
+    config.brightnessScalar = 1;
     this.candle.configAllSettings(config);
+
+    this.candle.setLEDs(0, 0, 100);
   }
 
   public void setLeds(Integer start, Integer end, Integer r, Integer g, Integer b){
-    candle.setLEDs(r, g, b, 0, start+8, end-start+8);
+    candle.setLEDs(r, g, b);
+  }
+
+  public void end(){
+    candle.setLEDs(0, 0, 100);
   }
 
   @Override

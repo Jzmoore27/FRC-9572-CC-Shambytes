@@ -11,7 +11,7 @@ import frc.robot.subsystems.LauncherMech;
 public class LEDcmd extends Command {
   CANdleLED candle;
   LauncherMech launcherMech;
-  Integer amt, i;
+  Integer amt, i = 0, blink = 255;
   /** Creates a new LEDcmd. */
   public LEDcmd(CANdleLED candle, LauncherMech launcherMech, Integer amt) {
     this.candle = candle;
@@ -23,29 +23,42 @@ public class LEDcmd extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    candle.setLeds(0,amt+7,0,0,255);
+    candle.setLeds(0,amt,0,0,255);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if(!launcherMech.getProxSensorValue()){
-      candle.setLeds(0, amt/10, 220, 120, 10);
-      candle.setLeds((amt/10)*3, (amt/10)*4, 220, 120, 10);
-      candle.setLeds((amt/10)*6, (amt/10)*7, 220, 120, 10);
-      candle.setLeds((amt/10)*9, amt, 220, 120, 10);
+    i++;
+    if(i >= 9){
+       blink = blink==255 ? 0 : 255;
+       i = 0;
     }
-    if(launcherMech.getProxSensorValue()){
-      candle.setLeds(0, amt/10, 0, 0, 0);
-      candle.setLeds((amt/10)*3, (amt/10)*4, 0, 0, 0);
-      candle.setLeds((amt/10)*6, (amt/10)*7, 0, 0, 0);
-      candle.setLeds((amt/10)*9, amt, 0, 0, 0);
+    if(launcherMech.speakerReady()){
+      candle.setLeds(0,amt,255,0,0);
+    }
+    /*else if(launcherMech.ampReady()){
+      candle.setLeds(0,amt,255,255,0);
+    }*/
+    else if(launcherMech.launchRunning()){
+      candle.setLeds(0,amt,0,blink,0);
+    }
+    else if(launcherMech.intake()){
+      candle.setLeds(0,amt,blink-152,0,blink-105);
+    }
+    else if((!launcherMech.getProxSensorValue())&&launcherMech.getAbsPositionDeg()<20){
+      candle.setLeds(0,amt,160,32,40);
+    }
+    else{
+      candle.setLeds(0,amt,0,0,blink-155);
     }
   }
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) {
+    candle.end();
+  }
 
   // Returns true when the command should end.
   @Override

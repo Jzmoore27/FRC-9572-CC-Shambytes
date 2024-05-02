@@ -8,33 +8,36 @@ import java.util.function.Supplier;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.Constants.SwerveDriveConstants.*;
-import frc.robot.subsystems.SwerveDrive;
+import frc.robot.subsystems.LimeLight;
+import frc.robot.subsystems.SwerveDriveSub;
 
 public class SwerveJoystickCmd extends Command {
 
-  private final SwerveDrive swerveDrive;
+  private final SwerveDriveSub swerveDrive;
+  private final LimeLight limelight;
+  private Double xSpeed, ySpeed, tSpeed;
   private final Supplier<Double> xSpdFunction, ySpdFunction, turningSpdFunction;
-  private final Supplier<Boolean> fieldOrientedFunction, zeroButton;
-  private final SlewRateLimiter xLimiter, yLimiter, turningLimiter;
-  private  Boolean fieldRelative, fPressed, zPressed = true;
+  private final Supplier<Boolean>  zeroButton, switchSpds, lime;
+  private Boolean fieldRelative = true, zpressed = false, spressed = false;
+  private SlewRateLimiter xLimiter, yLimiter, tLimiter;
 
   /** Creates a new SwerveJoystickCmd. */
-  public SwerveJoystickCmd(SwerveDrive swerveDrive,
-      Supplier<Double> xSpdFunction, Supplier<Double> ySpdFunction, Supplier<Double> turningSpdFunction,
-      Supplier<Boolean> fieldOrientedFunction, Supplier<Boolean> zeroFunction) {
+  public SwerveJoystickCmd(SwerveDriveSub swerveDrive, LimeLight limelight,
+      Supplier<Double> xSpdFunction, Supplier<Double> ySpdFunction, Supplier<Double> turningSpdFunction, Supplier<Boolean> switchFunction, Supplier<Boolean> zeroFunction, Supplier<Boolean> limeFunction) {
     this.swerveDrive = swerveDrive;
+    this.limelight=limelight;
     this.xSpdFunction = xSpdFunction;
     this.ySpdFunction = ySpdFunction;
-    this.zeroButton = zeroFunction;
+    this.lime = limeFunction;
+    this.fieldRelative = true;
     this.turningSpdFunction = turningSpdFunction;
-    this.fieldOrientedFunction = fieldOrientedFunction;
-    this.xLimiter = new SlewRateLimiter(DriveConstants.MaxAccelerationUnitsPerSecond);
-    this.yLimiter = new SlewRateLimiter(DriveConstants.MaxAccelerationUnitsPerSecond);
-    this.turningLimiter = new SlewRateLimiter(DriveConstants.MaxAngularAccelerationUnitsPerSecond);
+    this.zeroButton = zeroFunction;
+    this.switchSpds = switchFunction;
+    this.xLimiter = new SlewRateLimiter(1);
+    this.yLimiter = new SlewRateLimiter(1);
+    this.tLimiter = new SlewRateLimiter(3);
     addRequirements(swerveDrive);
   }
 
@@ -42,65 +45,45 @@ public class SwerveJoystickCmd extends Command {
   @Override
   public void initialize() {
     fieldRelative = true;
+    swerveDrive.setMotorBrake(true);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    // 1. Get real-time joystick inputs
-    double xSpeed = xSpdFunction.get();
-    double ySpeed = ySpdFunction.get();
-    double turningSpeed = turningSpdFunction.get();
-
-    if(!fieldOrientedFunction.get()){
-      if(!fPressed) {
-        fieldRelative = fieldRelative ? false: true;
-        fPressed = true;
+      xSpeed = xLimiter.calculate(xSpdFunction.get());
+      ySpeed = yLimiter.calculate(ySpdFunction.get());
+      tSpeed = tLimiter.calculate(turningSpdFunction.get());
+      if(lime.get()&&limelight.getY()>0.0){
+        swerveDrive.drive(new ChassisSpeeds(-0.2-xSpeed, -ySpeed, (-limelight.getX()/60)+tSpeed));
       }
-    }
-    else{fPressed = false;}
-
-    if(zeroButton.get()){
-      if(!zPressed) {
-        swerveDrive.zeroHeading();
-        zPressed = true;
+      else if(fieldRelative){
+        swerveDrive.driveFieldOriented(new ChassisSpeeds(-xSpeed, -ySpeed, tSpeed));
       }
-    }
-    else{zPressed = false;}
+      else{
+        swerveDrive.drive(new ChassisSpeeds(-xSpeed, -ySpeed, tSpeed));
+      }
+      SmartDashboard.putBoolean("btn", lime.get());
+      if(switchSpds.get()){
+        if(!spressed){
+          spressed = true;
+          fieldRelative = fieldRelative ? false : true;
+        }
+      }
+      else{
+        spressed = false;
+      }
 
-    // 2. Apply deadband
-    xSpeed = Math.abs(xSpeed) > IOConstants.Deadband ? xSpeed : 0.0;
-    ySpeed = Math.abs(ySpeed) > IOConstants.Deadband ? ySpeed : 0.0;
-    
-    turningSpeed = Math.abs(turningSpeed) > IOConstants.Deadband ? turningSpeed : 0.0;
-
-    // 3. Make the driving smoother
-    xSpeed = xLimiter.calculate(xSpeed);
-    ySpeed = yLimiter.calculate(ySpeed);
-    turningSpeed = turningLimiter.calculate(turningSpeed)*-1
-        * DriveConstants.MaxAngularSpeedRPS;
-
-    // 4. Construct desired chassis speeds
-    ChassisSpeeds chassisSpeeds;
-    if (fieldRelative) {
-      // Relative to field
-      chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(-xSpeed, -ySpeed, -turningSpeed, swerveDrive.getRotation2d());
-    } else {
-      // Relative to robot
-      chassisSpeeds = new ChassisSpeeds(-xSpeed, -ySpeed, -turningSpeed);
-    }
-
-    // 5. Convert chassis speeds to individual module states
-    SwerveModuleState[] moduleStates = DriveConstants.DriveKinematics.toSwerveModuleStates(chassisSpeeds);
-
-    // 6. Output each module states to wheels
-    swerveDrive.setDesiredStates(moduleStates);
-
+      if(zeroButton.get()){
+        if(!zpressed){
+          zpressed = true;
+          swerveDrive.zeroGyro();
+        }
+      }
+      else{
+        zpressed = false;
+      }
     SmartDashboard.putBoolean("fieldOriented", fieldRelative);
-    SmartDashboard.putNumber("xSpeed", xSpeed);
-    SmartDashboard.putNumber("ySpeed", ySpeed);
-     SmartDashboard.putNumber("turnSpeed", turningSpeed);
-
   }
 
   // Called once the command ends or is interrupted.
